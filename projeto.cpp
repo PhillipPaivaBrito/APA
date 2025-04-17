@@ -44,7 +44,7 @@ class solver {
                     std::cout << std::endl << "Todos os voos alocados" << std::endl;
                     break;
                 }else{
-                    if(int(rotas[j].size()) < 1){
+                    if(int(this->rotas[j].size()) < 1){
                         this->rotas[j].push_back(findshorterindex());
                     }else{
                         //aqui vai outro criterio de alocação
@@ -64,8 +64,10 @@ class solver {
             }
             std::cout << std::endl;
         }
+        calcvalue();
         
     }
+
     int findshorterindex(){
         int menor = 0;
         for (int i = 1; i < numero_de_voos; i++){
@@ -79,9 +81,21 @@ class solver {
         this->list[menor] = std::numeric_limits<int>::max(); // marca o menor como maximo para não ser escolhido novamente
         return menor;
     }
-    int calvalue(){
+
+    void calcvalue(){
         
-        return 0;
+        //Multa = Valor Multa por Minuto *(Tempo de inıcio do pouso ou decolagem − Tempo de liberação do voo)
+        //considerando que os primeiros voos sempre pousam sem esperar
+        for(int i = 0; i < numero_de_pistas; i++){// para cada pista
+        int timePD = 0; // tempo que o voo vai esperar para pousar ou decolar
+        std::cout << timePD << " custo atual: "<< this->custtotal << std::endl;
+            for(int j = 1; j < int(rotas[i].size()); j++){
+                //std::cout << getr(rotas[i][j - 1]) << " "<< getc(rotas[i][j - 1]) << " " << gett(rotas[i][j - 1], rotas[i][j])<< " ";
+                timePD += getr(rotas[i][j - 1]) + getc(rotas[i][j - 1]) + gett(rotas[i][j - 1], rotas[i][j]);
+                this->custtotal +=  getp(this->rotas[i][j])*(timePD - getr(this->rotas[i][j]));
+                std::cout << timePD << " custo atual: "<< this->custtotal << std::endl;
+            }
+        }
     }
 
     int getr(int row){
@@ -89,6 +103,9 @@ class solver {
     }
     int getc(int row){
         return this->c[row];
+    }
+    int getp(int row){
+        return this->p[row];
     }
     int gett(int row, int col){
         return this->t[row][col];
@@ -157,6 +174,6 @@ int main(int argc, char *argv[]){
     }
     myfile.close(); // fecha o arquivo
     solver s(numero_de_voos, numero_de_pistas, r, c, p, t);
-    std::cout << std::endl << "Custos totais: " << s.custtotal << std::endl;
+    std::cout << std::endl << "Custos total: " << s.custtotal << std::endl;
     return 0;
 }
