@@ -56,14 +56,7 @@ class solver {
                 
             }
         }while(i < numero_de_voos);
-        std::cout << std::endl << "Rotas: " << std::endl;
-        for(int i = 0; i < numero_de_pistas; i++){
-            std::cout << "Pista " << i+1 << ": ";
-            for(int j = 0; j < int(rotas[i].size()); j++){
-                std::cout << rotas[i][j] << ' ';
-            }
-            std::cout << std::endl;
-        }
+        std::cout << std::endl;
         calcvalue();
         
     }
@@ -87,13 +80,13 @@ class solver {
         //Multa = Valor Multa por Minuto *(Tempo de inıcio do pouso ou decolagem − Tempo de liberação do voo)
         //considerando que os primeiros voos sempre pousam sem esperar
         for(int i = 0; i < numero_de_pistas; i++){// para cada pista
-        int timePD = 0; // tempo que o voo vai esperar para pousar ou decolar
-        std::cout << timePD << " custo atual: "<< this->custtotal << std::endl;
+        int timePD = getc(rotas[i][0])+getr(rotas[i][0]); // tempo que o voo vai esperar para pousar ou decolar
+        std::cout << "tempo_op: " << timePD << " custo atual: "<< this->custtotal << std::endl;
             for(int j = 1; j < int(rotas[i].size()); j++){
-                //std::cout << getr(rotas[i][j - 1]) << " "<< getc(rotas[i][j - 1]) << " " << gett(rotas[i][j - 1], rotas[i][j])<< " ";
-                timePD += getr(rotas[i][j - 1]) + getc(rotas[i][j - 1]) + gett(rotas[i][j - 1], rotas[i][j]);
-                this->custtotal +=  getp(this->rotas[i][j])*(timePD - getr(this->rotas[i][j]));
-                std::cout << timePD << " custo atual: "<< this->custtotal << std::endl;
+                //std::cout << getr(rotas[i][j]) << " "<< getc(rotas[i][j]) << " " << gett(rotas[i][j], rotas[i][j-1])<< " "; //prints para saber se os valores estao corretos
+                this->custtotal +=  getp(this->rotas[i][j])*(timePD - getr(this->rotas[i][j-1]));
+                timePD += getr(rotas[i][j]) + getc(rotas[i][j]) + gett(rotas[i][j], rotas[i][j]);
+                std::cout << "tempo_op: " << timePD << " custo atual: "<< this->custtotal << std::endl;
             }
         }
     }
@@ -125,7 +118,7 @@ int main(int argc, char *argv[]){
     std::vector <int> p;//custo de espera
     std::vector<std::vector<int>> t;//tempo de espera entre j e i
     //abrir arquivo
-    std::ifstream myfile(arquivo + "n3m10A.txt"); //std::ifstream myfile(argv[1]);
+    std::ifstream myfile(arquivo + "teste.txt"); //std::ifstream myfile(argv[1]);
     if(argc > 1){
         myfile.close(); // fecha o arquivo
         myfile.clear(); // limpa o estado do arquivo
@@ -174,6 +167,15 @@ int main(int argc, char *argv[]){
     }
     myfile.close(); // fecha o arquivo
     solver s(numero_de_voos, numero_de_pistas, r, c, p, t);
-    std::cout << std::endl << "Custos total: " << s.custtotal << std::endl;
-    return 0;
+    std::cout << std::endl << "Custos total: " << s.custtotal;
+    std::cout << std::endl << "Rotas: " << std::endl;
+        for(int i = 0; i < numero_de_pistas; i++){
+            std::cout << "Pista " << i+1 << ": ";
+            for(int j = 0; j < int(s.rotas[i].size()); j++){
+                std::cout << s.rotas[i][j] << ' ';
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+        return 1;
 }
