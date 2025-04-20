@@ -52,13 +52,13 @@ class solver {
                         //alocar o voo na pista que tem o menor tempo de espera
                         this->rotas[j].push_back(greedy(j));
                     }
-                }
-                
+                } 
             }
         }while(i < numero_de_voos);
+        for(int i = 0; i < numero_de_pistas; i++){
+            this->custtotal += calcValueLine(i);
+        }
         std::cout << std::endl;
-        calcvalue();
-        
     }
 
     int findSmallestValue(){
@@ -79,11 +79,12 @@ class solver {
     int greedy(int j){
         
         int menor = 0;
+        std::cout << std::endl << "pista: " << j+1 << " index: " << rotas[j].size()-1 << " to " << std::endl;
         //std::cout << std::endl << "index " << 0 
-                               << " valor: " << getr(0) 
-                               << " c: " << getc(0)
-                               << " t: " << gett(j,0) 
-                               << " custo: " << this->list[0] + getc(0) + gett(j,0);
+        //                       << " valor: " << getr(0) 
+        //                       << " c: " << getc(0)
+        //                       << " t: " << gett(j,0) 
+        //                       << " custo: " << this->list[0] + getc(0) + gett(j,0);
 
         for (int i = 1; i < numero_de_voos; i++){
             if((this->list[i] +      getc(rotas[j].size()-1) + gett(i    ,rotas[j].size()-1)) < 
@@ -98,34 +99,19 @@ class solver {
         }
         
         this->list[menor] = (std::numeric_limits<int>::max()/2); // marca o menor como maximo para não ser escolhido novamente
-        std::cout << std::endl << "menor: " << menor << " valor: " << getr(menor);
+        std::cout << std::endl << "menor: " << menor << " valor: " << getr(menor) << std::endl;
         return menor;
-    }
-
-    void calcvalue(){
-        //Multa = Valor Multa por Minuto *(Tempo de inıcio do pouso ou decolagem − Tempo de liberação do voo)
-        //considerando que os primeiros voos sempre pousam sem esperar
-        for(int i = 0; i < numero_de_pistas; i++){// para cada pista
-        int timePD = getc(rotas[i][0])+getr(rotas[i][0]); // tempo que o voo vai esperar para pousar ou decolar
-        //std::cout << "tempo_op: " << timePD << " custo atual: "<< this->custtotal << std::endl;
-            for(int j = 1; j < int(rotas[i].size()); j++){
-                //std::cout << getr(rotas[i][j]) << " "<< getc(rotas[i][j]) << " " << gett(rotas[i][j], rotas[i][j-1])<< " "; //prints para saber se os valores estao corretos
-                this->custtotal +=  getp(this->rotas[i][j])*(timePD - getr(this->rotas[i][j-1]));
-                timePD += getr(rotas[i][j]) + getc(rotas[i][j]) + gett(rotas[i][j], rotas[i][j]);
-                //std::cout << "tempo_op: " << timePD << " custo atual: "<< this->custtotal << std::endl;
-            }
-        }
     }
 
     int calcValueLine(int i){
         int costLine = 0;
         //Multa = Valor Multa por Minuto *(Tempo de inıcio do pouso ou decolagem − Tempo de liberação do voo)
         //considerando que os primeiros voos sempre pousam sem esperar
-        int timePD = getc(rotas[i][0])+getr(rotas[i][0]); // tempo que o voo vai esperar para pousar ou decolar
+        int timePD = getc(rotas[i][0]) + getr(rotas[i][0]); // tempo que o voo vai esperar para pousar ou decolar
         //std::cout << "tempo_op: " << timePD << " custo atual: "<< costLine << std::endl;
         for(int j = 1; j < int(rotas[i].size()); j++){
             //std::cout << getr(rotas[i][j]) << " "<< getc(rotas[i][j]) << " " << gett(rotas[i][j], rotas[i][j-1])<< " "; //prints para saber se os valores estao corretos
-            costLine +=  getp(this->rotas[i][j])*(timePD - getr(this->rotas[i][j-1]));
+            costLine +=  getp(this->rotas[i][j]) * (timePD - getr(this->rotas[i][j-1]));
             timePD += getr(rotas[i][j]) + getc(rotas[i][j]) + gett(rotas[i][j], rotas[i][j]);
             //std::cout << "tempo_op: " << timePD << " custo atual: "<< costLine << std::endl;
         }
