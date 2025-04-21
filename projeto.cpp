@@ -104,7 +104,7 @@ public:
     
     do {
         improved = false;
-        std::cout << std::endl << "Explorando vizinhanca " << k << " - melhor custo atual " << currentCost << std::endl;
+        //std::cout << std::endl << "Explorando vizinhanca " << k << " - melhor custo atual " << currentCost << std::endl;
         switch (k) {
             case 1: { // Insert na mesma pista
                 for (int t = 0; t < numero_de_pistas; t++) {
@@ -119,10 +119,10 @@ public:
                             if (p2 == p1) continue;
                                 
                             auto neighbor = initialSolution;
-                            std::cout << "track: " << t << " p1: " << p1 << " p2: " << p2 << std::endl;
+                            //std::cout << "track: " << t << " p1: " << p1 << " p2: " << p2 << std::endl;
                             if (Neighborhood::insertInSameTrack(neighbor, t, p1, p2)) {
                                 int neighborCost = calculateSolutionCost(neighbor);
-                                std::cout << "custo do vizinho: "<< neighborCost << std::endl;
+                                //std::cout << "custo do vizinho: "<< neighborCost << std::endl;
                                 
                                 if (neighborCost < currentCost) {
                                     initialSolution = neighbor;
@@ -143,10 +143,10 @@ public:
                         for (int t2 = t1+1; t2 < numero_de_pistas; ++t2) {
                             for (int p2 = 0; p2 < int(initialSolution[t2].size()); ++p2) {
                                 auto neighbor = initialSolution;
-                                std::cout << "t1: " << t1 << " p1: " << p1 << " t2: " << t2 << " p2: " << p2 << std::endl;
+                                //std::cout << "t1: " << t1 << " p1: " << p1 << " t2: " << t2 << " p2: " << p2 << std::endl;
                                 if (Neighborhood::swapBetweenTracks(neighbor, t1, p1, t2, p2)) {
                                     int neighborCost = calculateSolutionCost(neighbor);
-                                    std::cout << "custo do vizinho: "<< neighborCost << std::endl;
+                                    //std::cout << "custo do vizinho: "<< neighborCost << std::endl;
                                     if (neighborCost < currentCost) {
                                         initialSolution = neighbor;
                                         currentCost = neighborCost;
@@ -169,7 +169,7 @@ public:
                             auto neighbor = initialSolution;
                             if (Neighborhood::moveToOtherTrack(neighbor, t1, p, t2)) {
                                 int neighborCost = calculateSolutionCost(neighbor);
-                                std::cout << "custo do vizinho: "<< neighborCost << std::endl;
+                                //std::cout << "custo do vizinho: "<< neighborCost << std::endl;
                                 if (neighborCost < currentCost) {
                                     initialSolution = neighbor;
                                     currentCost = neighborCost;
