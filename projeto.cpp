@@ -221,30 +221,31 @@ public:
         tempo_guloso = duration.count();
         std::cout << "Tempo da heuristica: " << tempo_guloso << " ms" << std::endl;
         custtotal = calculetotal();
-        std::cout << "fim da heuristica gulosa" << std::endl;
+        std::cout << "custo da heuristica gulosa: " << custtotal << std::endl;
         
 
         // Aplicar VND para melhorar a solução inicial
         VND vnd(numero_de_voos, numero_de_pistas, r, c, p, t);
-        std::cout << "iniciando o VND" << std::endl;
+        std::cout << std::endl << "iniciando o VND" << std::endl;
         start = std::chrono::high_resolution_clock::now();  // Inicia a medição
         vnd.improveSolution(rotas);
         stop = std::chrono::high_resolution_clock::now();  // Finaliza a medição
         duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
         tempo_vnd = duration.count();
-        std::cout << "Tempo do algoritmo VND: " << tempo_vnd << " ms" << std::endl;
+        std::cout << std::endl << "Tempo do algoritmo VND: " << tempo_vnd << " ms" << std::endl;
         // Recalcular custo total após VND
         custtotal = calculetotal();
         std::cout << "Custo total apos VND: " << custtotal << std::endl;
 
     }
     void makePlaciment(){
+        std::cout << std::endl << "Iniciando a alocacao gulosa" << std::endl;
         rotas.resize(numero_de_pistas);
         int i = 0;
         do{
             for(int j = 0; j < numero_de_pistas; j++,i++){
                 if(i == numero_de_voos){
-                    //std::cout << std::endl << "Todos os voos alocados" << std::endl;
+                    std::cout << std::endl << "Todos os voos alocados" << std::endl;
                     break;
                 }else{
                     //std::cout << std::endl << this->rotas[j].size() << std::endl;
@@ -258,7 +259,7 @@ public:
                 } 
             }
         }while(i < numero_de_voos);
-        std::cout << "\nAlocacao concluida." << std::endl;
+        std::cout << std::endl << "Alocacao concluida." << std::endl << std::endl;
         
     }
 
@@ -373,33 +374,40 @@ int main(int argc, char *argv[]) {
         std::cout << "Problemas na abertura do arquivo\n";
         return 0;
     }
-
+    std::cout << std::endl << "Instancia de entrada: " << std::endl << std::endl;
     // Ler dados de entrada
     myfile >> numero_de_voos >> numero_de_pistas;
     std::cout << "numero de voos: " << numero_de_voos << std::endl;
     std::cout << "numero de pistas: " << numero_de_pistas << std::endl;
-    
+    std::cout << std::endl;
     // Ler os vetores r, c, p
     for(int i = 0; i < numero_de_voos; i++) {
         myfile >> content;
         r.push_back(content);
+        std::cout << r[i] << " ";;
     }
+    std::cout << std::endl;
     for(int i = 0; i < numero_de_voos; i++) {
         myfile >> content;
         c.push_back(content);
+        std::cout << c[i] << " ";
     }
+    std::cout << std::endl;
     for(int i = 0; i < numero_de_voos; i++) {
         myfile >> content;
         p.push_back(content);
+        std::cout << p[i] << " ";
     }
-
+    std::cout << std::endl << std::endl;
     // Ler a matriz t
     t.resize(numero_de_voos, std::vector<int>(numero_de_voos));
     for(int i = 0; i < numero_de_voos; i++) {
         for(int j = 0; j < numero_de_voos; j++) {
             myfile >> content;
             t[i][j] = content;
+            std::cout << t[i][j] << " ";
         }
+        std::cout << std::endl;
     }
     myfile.close();
 
