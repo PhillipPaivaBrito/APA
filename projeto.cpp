@@ -366,7 +366,7 @@ int main(int argc, char *argv[]) {
     std::ifstream myfile(diretorio + "teste.txt");
     if(argc > 1) {
         myfile.close();
-        myfile.clear();
+        //myfile.clear();
         myfile.open(diretorio + argv[1]);
     }
       
@@ -418,9 +418,9 @@ int main(int argc, char *argv[]) {
     diretorio = "../saidas/";
     std::ofstream outfile(diretorio + "saida_teste.txt");
     if(argc > 1) {
-        myfile.close();
-        myfile.clear();
-        std::ofstream outfile(diretorio + argv[1]);
+        outfile.close();
+        //outfile.clear();
+        outfile.open(diretorio + argv[1]);
     }
     if (!outfile.is_open()) {
         std::cerr << "Erro ao criar arquivo de saida" << std::endl;
@@ -452,7 +452,7 @@ int main(int argc, char *argv[]) {
         }
         std::cout << std::endl;
     }
-    std::cout << "Resultados gravados no arquivo 'saida.txt'" << std::endl;
+    std::cout << "Resultados gravados no arquivo "<<  argv[1] << std::endl;
 
     return 0;
 }
