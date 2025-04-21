@@ -127,6 +127,7 @@ public:
                                     initialSolution = neighbor;
                                     currentCost = neighborCost;
                                     improved = true;
+                                    continue;
                                     //goto next_neighborhood;
                                 }
                             }
@@ -149,6 +150,7 @@ public:
                                         initialSolution = neighbor;
                                         currentCost = neighborCost;
                                         improved = true;
+                                        continue;
                                         //goto next_neighborhood; // Melhoria encontrada, volta para k=1
                                     }
                                 }
@@ -171,6 +173,7 @@ public:
                                     initialSolution = neighbor;
                                     currentCost = neighborCost;
                                     improved = true;
+                                    continue;
                                     //goto next_neighborhood; // Melhoria encontrada, volta para k=1
                                 }
                             }
@@ -329,77 +332,96 @@ public:
     }
 };//fim da classe solver
 
-int main(int argc, char *argv[]){
-
-    std::string arquivo = "../instancias_teste/";
+int main(int argc, char *argv[]) {
+    std::string diretorio = "../instancias_teste/";
     int content;
 
-    int numero_de_voos,
-        numero_de_pistas;
+    int numero_de_voos, numero_de_pistas;
+    std::vector<int> r, c, p;
+    std::vector<std::vector<int>> t;
 
-    std::vector <int> r;//tempo minimo para iniciar operação
-    std::vector <int> c;//custo para completar operação
-    std::vector <int> p;//custo de espera
-    std::vector<std::vector<int>> t;//tempo de espera entre j e i
-    //abrir arquivo
-    std::ifstream myfile(arquivo + "teste.txt"); //std::ifstream myfile(argv[1]);
-    if(argc > 1){
-        myfile.close(); // fecha o arquivo
-        myfile.clear(); // limpa o estado do arquivo
-        myfile.open(arquivo + argv[1]);
+    // Abrir diretorio de entrada
+    std::ifstream myfile(diretorio + "teste.txt");
+    if(argc > 1) {
+        myfile.close();
+        myfile.clear();
+        myfile.open(diretorio + argv[1]);
     }
       
-    if (!(myfile.is_open()))  // Se houve erro na abertura
-    {
-        std::cout << "Problemas na abertura do arquivo\n" << myfile.is_open();
+    if (!myfile.is_open()) {
+        std::cout << "Problemas na abertura do arquivo\n";
         return 0;
     }
-    std::cout << "Arquivo aberto com sucesso\n";
-    myfile >> numero_de_voos;
-    myfile >> numero_de_pistas;
 
-    std::cout << numero_de_voos << std::endl << numero_de_pistas << std::endl<<std::endl;
-
-    for(int i = 0; i < numero_de_voos; i++){// leitura tempo minimo para iniciar operação
+    // Ler dados de entrada
+    myfile >> numero_de_voos >> numero_de_pistas;
+    
+    // Ler os vetores r, c, p
+    for(int i = 0; i < numero_de_voos; i++) {
         myfile >> content;
         r.push_back(content);
-        std::cout << r.back() <<' ';
     }
-    std::cout<<std::endl;
-    for(int i = 0; i < numero_de_voos; i++){// leitura dos custo para completar operação
+    for(int i = 0; i < numero_de_voos; i++) {
         myfile >> content;
         c.push_back(content);
-        std::cout << c.back() <<' ';
     }
-    std::cout<<std::endl;
-    for(int i = 0; i < numero_de_voos; i++){// leitura dos custo de espera
+    for(int i = 0; i < numero_de_voos; i++) {
         myfile >> content;
         p.push_back(content);
-        std::cout << p.back() <<' ';
     }
-    std::cout<<std::endl<<std::endl;;
 
-    t.resize(numero_de_voos, std::vector<int>(numero_de_voos)); // Redimensiona t para ser uma matriz numero_de_voos x numero_de_voos
-    
-    for(int i = 0; i < numero_de_voos; i++){// leitura da matriz de tempo de espera entre j e i
-        for(int j = 0; j < numero_de_voos; j++){
+    // Ler a matriz t
+    t.resize(numero_de_voos, std::vector<int>(numero_de_voos));
+    for(int i = 0; i < numero_de_voos; i++) {
+        for(int j = 0; j < numero_de_voos; j++) {
             myfile >> content;
             t[i][j] = content;
-            std::cout << t[i][j]<<' ';
         }
-        std::cout<<std::endl;
     }
-    myfile.close(); // fecha o arquivo
+    myfile.close();
+
+    // Resolver o problema
     solver s(numero_de_voos, numero_de_pistas, r, c, p, t);
-    std::cout << std::endl << "Custos total: " << s.custtotal;
-    std::cout << std::endl << "Rotas: " << std::endl;
-        for(int i = 0; i < numero_de_pistas; i++){
-            std::cout << "Pista " << i+1 << ": ";
-            for(int j = 0; j < int(s.rotas[i].size()); j++){
-                std::cout << s.rotas[i][j] + 1 << ' ';
+
+    // Gerar arquivo de saída
+    diretorio = "../saidas/";
+    std::ofstream outfile(diretorio + "saida_teste.txt");
+    if(argc > 1) {
+        myfile.close();
+        myfile.clear();
+        std::ofstream outfile(diretorio + argv[1]);
+    }
+    if (!outfile.is_open()) {
+        std::cerr << "Erro ao criar arquivo de saida" << std::endl;
+        return 1;
+    }
+
+    // Escrever o valor da solução (linha 1)
+    outfile << s.custtotal << std::endl;
+
+    // Escrever a alocação de voos por pista (linhas 2...m+1)
+    for(int i = 0; i < numero_de_pistas; i++) {
+        for(int j = 0; j < int(s.rotas[i].size()); j++) {
+            outfile << s.rotas[i][j] + 1; // +1 para converter de índice 0-based para 1-based
+            if(j < int(s.rotas[i].size()) - 1) {
+                outfile << " ";
             }
-            std::cout << std::endl;
+        }
+        outfile << std::endl;
+    }
+    outfile.close();
+
+    // Mostrar resultados no console também (opcional)
+    std::cout << std::endl << "Custos total: " << s.custtotal << std::endl;
+    std::cout << "Rotas: " << std::endl;
+    for(int i = 0; i < numero_de_pistas; i++) {
+        std::cout << "Pista " << i+1 << ": ";
+        for(int j = 0; j < int(s.rotas[i].size()); j++) {
+            std::cout << s.rotas[i][j] + 1 << ' ';
         }
         std::cout << std::endl;
-        return 1;
+    }
+    std::cout << "Resultados gravados no arquivo 'saida.txt'" << std::endl;
+
+    return 0;
 }
