@@ -4,7 +4,8 @@
 #include <vector>
 #include <limits>
 #include <algorithm>
-//#include <random>
+#include <chrono>
+
 
 class Neighborhood {
 public:
@@ -204,22 +205,38 @@ public:
     std::vector<std::vector<int>> t;
     std::vector<int> list;
 
+    double tempo_guloso;   // Tempo do algoritmo guloso em milissegundos
+    double tempo_vnd;     // Tempo do algoritmo VND em milissegundos
+
     solver(int numero_de_voos, int numero_de_pistas, std::vector<int>& r, 
            std::vector<int>& c, std::vector<int>& p, std::vector<std::vector<int>>& t)
         : numero_de_voos(numero_de_voos), numero_de_pistas(numero_de_pistas),
           r(r), c(c), p(p), t(t) {
         this->list = r;
+        
+        auto start = std::chrono::high_resolution_clock::now();  // Inicia a medição
         makePlaciment();
+        auto stop = std::chrono::high_resolution_clock::now();  // Finaliza a medição
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+        tempo_guloso = duration.count();
+        std::cout << "Tempo da heuristica: " << tempo_guloso << " ms" << std::endl;
+        custtotal = calculetotal();
+        std::cout << "fim da heuristica gulosa" << std::endl;
+        
 
         // Aplicar VND para melhorar a solução inicial
         VND vnd(numero_de_voos, numero_de_pistas, r, c, p, t);
+        std::cout << "iniciando o VND" << std::endl;
+        start = std::chrono::high_resolution_clock::now();  // Inicia a medição
         vnd.improveSolution(rotas);
-        
+        stop = std::chrono::high_resolution_clock::now();  // Finaliza a medição
+        duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+        tempo_vnd = duration.count();
+        std::cout << "Tempo do algoritmo VND: " << tempo_vnd << " ms" << std::endl;
         // Recalcular custo total após VND
-        custtotal = 0;
-        for(int i = 0; i < numero_de_pistas; i++) {
-            custtotal += calcValueLine(i);
-        }
+        custtotal = calculetotal();
+        std::cout << "Custo total apos VND: " << custtotal << std::endl;
+
     }
     void makePlaciment(){
         rotas.resize(numero_de_pistas);
@@ -241,11 +258,8 @@ public:
                 } 
             }
         }while(i < numero_de_voos);
-        std::cout << "\nAlocacao concluida.";
-        for(int i = 0; i < numero_de_pistas; i++){
-            this->custtotal += calcValueLine(i);
-        }
-        std::cout << std::endl;
+        std::cout << "\nAlocacao concluida." << std::endl;
+        
     }
 
     int findSmallestValue(){
@@ -317,7 +331,14 @@ public:
     
     return costLine;
 }
-
+    
+    int calculetotal(){
+        this->custtotal = 0;
+        for(int i = 0; i < numero_de_pistas; i++){
+            this->custtotal += calcValueLine(i);
+        }
+        return this->custtotal;
+    }
     int getr(int row){
         return this->r[row];
     }
@@ -355,6 +376,8 @@ int main(int argc, char *argv[]) {
 
     // Ler dados de entrada
     myfile >> numero_de_voos >> numero_de_pistas;
+    std::cout << "numero de voos: " << numero_de_voos << std::endl;
+    std::cout << "numero de pistas: " << numero_de_pistas << std::endl;
     
     // Ler os vetores r, c, p
     for(int i = 0; i < numero_de_voos; i++) {
