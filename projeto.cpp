@@ -4,7 +4,7 @@
 #include <vector>
 #include <limits>
 #include <algorithm>
-#include <random>
+//#include <random>
 
 class Neighborhood {
 public:
@@ -22,10 +22,12 @@ public:
     // Movimento 2: Move um voo para outra posição na mesma pista
     static bool insertInSameTrack(std::vector<std::vector<int>>& solution, int track, int oldPos, int newPos) {
         if (track >= int(solution.size()) || oldPos >= int(solution[track].size()) || newPos > int(solution[track].size())) {
+            std::cout << "Invalid position or track" << std::endl;
             return false;
         }
         
-        if (oldPos == newPos || oldPos == newPos - 1) {
+        if (oldPos == newPos) {
+            std::cout << "Invalid move: oldPos and newPos are the same" << std::endl;
             return false;
         }
         
@@ -58,28 +60,33 @@ private:
     std::vector<std::vector<int>> t;
     
     int calculateSolutionCost(const std::vector<std::vector<int>>& solution) {
-        int totalCost = 0;
+    int totalCost = 0;
+    
+    for (const auto& track : solution) {
+        if (track.empty()) continue;
         
-        for (const auto& track : solution) {
-            if (track.empty()) continue;
+        int currentTime = r[track[0]]; // Tempo de início é o tempo de liberação
+        
+        // Penalidade para o primeiro voo (deve ser zero se começar no r[i])
+        totalCost += p[track[0]] * 0; // Primeiro voo não tem atraso
+        
+        currentTime += c[track[0]]; // Tempo de término
+        
+        for (size_t i = 1; i < track.size(); ++i) {
+            int flight = track[i];
+            int prevFlight = track[i-1];
             
-            int currentTime = r[track[0]] + c[track[0]];
+            // Tempo de início considera o tempo de espera obrigatório
+            int startTime = std::max(r[flight], currentTime + t[prevFlight][flight]);
+            int delay = std::max(0, startTime - r[flight]);
+            totalCost += p[flight] * delay;
             
-            for (size_t i = 1; i < track.size(); ++i) {
-                int flight = track[i];
-                int prevFlight = track[i-1];
-                
-                // Calcula o tempo de início considerando o tempo de espera
-                int startTime = std::max(r[flight], currentTime + t[prevFlight][flight]);
-                int delay = startTime - r[flight];
-                totalCost += p[flight] * delay;
-                
-                currentTime = startTime + c[flight];
-            }
+            currentTime = startTime + c[flight];
         }
-        
-        return totalCost;
     }
+    
+    return totalCost;
+}
 
 public:
     VND(int num_voos, int num_pistas, const std::vector<int>& r_vec, 
@@ -89,84 +96,99 @@ public:
           r(r_vec), c(c_vec), p(p_vec), t(t_mat) {}
     
     void improveSolution(std::vector<std::vector<int>>& initialSolution) {
-        int k = 1;
-        const int maxNeighborhoods = 3;
-        int currentCost = calculateSolutionCost(initialSolution);
-        
-        while (k <= maxNeighborhoods) {
-            bool improved = false;
-            auto bestSolution = initialSolution;
-            int bestCost = currentCost;
-            
-            // Explora toda a vizinhança k
-            switch (k) {
-                case 1: // Swap entre pistas
-                    for (int t1 = 0; t1 < numero_de_pistas; ++t1) {
-                        for (int p1 = 0; p1 < int(initialSolution[t1].size()); ++p1) {
-                            for (int t2 = t1+1; t2 < numero_de_pistas; ++t2) {
-                                for (int p2 = 0; p2 < int(initialSolution[t2].size()); ++p2) {
-                                    auto neighbor = initialSolution;
-                                    if (Neighborhood::swapBetweenTracks(neighbor, t1, p1, t2, p2)) {
-                                        int neighborCost = calculateSolutionCost(neighbor);
-                                        if (neighborCost < bestCost) {
-                                            bestCost = neighborCost;
-                                            bestSolution = neighbor;
-                                            improved = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    break;
+    int k = 1;
+    const int maxNeighborhoods = 3;
+    int currentCost = calculateSolutionCost(initialSolution);
+    bool improved;
+    
+    do {
+        improved = false;
+        std::cout << std::endl << "Explorando vizinhanca " << k << " - melhor custo atual " << currentCost << std::endl;
+        switch (k) {
+            case 1: { // Insert na mesma pista
+                for (int t = 0; t < numero_de_pistas; t++) {
+                    int track_size = initialSolution[t].size();
+                    for (int p1 = 0; p1 < track_size; p1++) {
                     
-                case 2: // Insert na mesma pista
-                    for (int t = 0; t < numero_de_pistas; ++t) {
-                        for (int p1 = 0; p1 < int(initialSolution[t].size()); ++p1) {
-                            for (int p2 = 0; p2 <= int(initialSolution[t].size()); ++p2) {
-                                if (p1 == p2 || p1 == p2 - 1) continue;
-                                auto neighbor = initialSolution;
-                                if (Neighborhood::insertInSameTrack(neighbor, t, p1, p2)) {
-                                    int neighborCost = calculateSolutionCost(neighbor);
-                                    if (neighborCost < bestCost) {
-                                        bestCost = neighborCost;
-                                        bestSolution = neighbor;
-                                        improved = true;
-                                    }
+                        if (p1 > track_size) continue;// Verificação de segurança
+                        
+                        for (int p2 = p1 + 1; p2 < track_size; ++p2) {
+
+                            if (p2 > track_size) continue;// Verificação de segurança
+                            if (p2 == p1) continue;
+                                
+                            auto neighbor = initialSolution;
+                            std::cout << "track: " << t << " p1: " << p1 << " p2: " << p2 << std::endl;
+                            if (Neighborhood::insertInSameTrack(neighbor, t, p1, p2)) {
+                                int neighborCost = calculateSolutionCost(neighbor);
+                                std::cout << "custo do vizinho: "<< neighborCost << std::endl;
+                                
+                                if (neighborCost < currentCost) {
+                                    initialSolution = neighbor;
+                                    currentCost = neighborCost;
+                                    improved = true;
+                                    //goto next_neighborhood;
                                 }
                             }
                         }
                     }
-                    break;
-                    
-                case 3: // Move para outra pista
-                    for (int t1 = 0; t1 < numero_de_pistas; ++t1) {
-                        for (int p = 0; p < int(initialSolution[t1].size()); ++p) {
-                            for (int t2 = 0; t2 < numero_de_pistas; ++t2) {
-                                if (t1 == t2) continue;
-                                auto neighbor = initialSolution;
-                                if (Neighborhood::moveToOtherTrack(neighbor, t1, p, t2)) {
-                                    int neighborCost = calculateSolutionCost(neighbor);
-                                    if (neighborCost < bestCost) {
-                                        bestCost = neighborCost;
-                                        bestSolution = neighbor;
-                                        improved = true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    break;
+                }
+                break;
             }
-            
-            if (improved) {
-                initialSolution = bestSolution;
-                currentCost = bestCost;
-                k = 1; // Volta para a primeira vizinhança
-            } else {
-                k++; // Vai para a próxima vizinhança
+            case 2: { // Swap entre pistas
+                for (int t1 = 0; t1 < numero_de_pistas; ++t1) {
+                    for (int p1 = 0; p1 < int(initialSolution[t1].size()); ++p1) {
+                        for (int t2 = t1+1; t2 < numero_de_pistas; ++t2) {
+                            for (int p2 = 0; p2 < int(initialSolution[t2].size()); ++p2) {
+                                auto neighbor = initialSolution;
+                                std::cout << "t1: " << t1 << " p1: " << p1 << " t2: " << t2 << " p2: " << p2 << std::endl;
+                                if (Neighborhood::swapBetweenTracks(neighbor, t1, p1, t2, p2)) {
+                                    int neighborCost = calculateSolutionCost(neighbor);
+                                    std::cout << "custo do vizinho: "<< neighborCost << std::endl;
+                                    if (neighborCost < currentCost) {
+                                        initialSolution = neighbor;
+                                        currentCost = neighborCost;
+                                        improved = true;
+                                        //goto next_neighborhood; // Melhoria encontrada, volta para k=1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            case 3: { // Move para outra pista
+                for (int t1 = 0; t1 < numero_de_pistas; ++t1) {
+                    for (int p = 0; p < int(initialSolution[t1].size()); ++p) {
+                        for (int t2 = 0; t2 < numero_de_pistas; ++t2) {
+                            if (t1 == t2) continue;
+                            auto neighbor = initialSolution;
+                            if (Neighborhood::moveToOtherTrack(neighbor, t1, p, t2)) {
+                                int neighborCost = calculateSolutionCost(neighbor);
+                                std::cout << "custo do vizinho: "<< neighborCost << std::endl;
+                                if (neighborCost < currentCost) {
+                                    initialSolution = neighbor;
+                                    currentCost = neighborCost;
+                                    improved = true;
+                                    //goto next_neighborhood; // Melhoria encontrada, volta para k=1
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
             }
         }
+
+        //next_neighborhood:
+        if (improved) {
+            k = 1; // Volta para a primeira vizinhança
+        } else {
+            k++; // Vai para a próxima vizinhança
+        }
+        
+    } while (k <= maxNeighborhoods);
     }
 };
 
@@ -216,7 +238,7 @@ public:
                 } 
             }
         }while(i < numero_de_voos);
-
+        std::cout << "\nAlocacao concluida.";
         for(int i = 0; i < numero_de_pistas; i++){
             this->custtotal += calcValueLine(i);
         }
